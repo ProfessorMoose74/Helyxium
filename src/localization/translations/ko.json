@@ -1,0 +1,92 @@
+{
+  "app": {
+    "name": "Helyxium",
+    "tagline": "세계가 만나는 곳",
+    "description": "모든 가상현실 세계와 플랫폼을 연결하는 범용 VR 브리지 플랫폼"
+  },
+  "ui": {
+    "main_window": {
+      "title": "Helyxium - 범용 VR 브리지",
+      "menu": {
+        "file": "파일",
+        "edit": "편집",
+        "view": "보기",
+        "tools": "도구",
+        "help": "도움말"
+      },
+      "tabs": {
+        "dashboard": "대시보드",
+        "platforms": "플랫폼",
+        "worlds": "월드",
+        "social": "소셜",
+        "settings": "설정"
+      }
+    },
+    "dashboard": {
+      "welcome": "Helyxium에 오신 것을 환영합니다",
+      "status": "시스템 상태",
+      "connected_platforms": "연결된 플랫폼",
+      "recent_worlds": "최근 월드",
+      "quick_actions": "빠른 작업"
+    },
+    "platforms": {
+      "title": "VR 플랫폼",
+      "connected": "연결됨",
+      "available": "사용 가능",
+      "connect": "연결",
+      "disconnect": "연결 해제",
+      "configure": "구성"
+    },
+    "worlds": {
+      "title": "VR 월드",
+      "discover": "탐색",
+      "favorites": "즐겨찾기",
+      "recent": "최근",
+      "join": "월드 참가",
+      "bookmark": "북마크"
+    },
+    "social": {
+      "title": "소셜",
+      "friends": "친구",
+      "messages": "메시지",
+      "presence": "접속 상태",
+      "groups": "그룹"
+    },
+    "settings": {
+      "title": "설정",
+      "general": "일반",
+      "platforms": "플랫폼",
+      "security": "보안",
+      "privacy": "개인정보",
+      "advanced": "고급"
+    }
+  },
+  "messages": {
+    "loading": "로딩 중...",
+    "connecting": "연결 중...",
+    "connected": "연결됨",
+    "disconnected": "연결 해제됨",
+    "error": "오류",
+    "success": "성공",
+    "warning": "경고",
+    "info": "정보"
+  },
+  "errors": {
+    "platform_connection_failed": "플랫폼 연결에 실패했습니다",
+    "hardware_not_detected": "VR 하드웨어가 감지되지 않았습니다",
+    "network_error": "네트워크 연결 오류",
+    "authentication_failed": "인증에 실패했습니다",
+    "permission_denied": "권한이 거부되었습니다"
+  },
+  "buttons": {
+    "ok": "확인",
+    "cancel": "취소",
+    "apply": "적용",
+    "close": "닫기",
+    "save": "저장",
+    "load": "불러오기",
+    "refresh": "새로 고침",
+    "connect": "연결",
+    "disconnect": "연결 해제"
+  }
+}

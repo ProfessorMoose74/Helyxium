@@ -1,0 +1,92 @@
+{
+  "app": {
+    "name": "Helyxium",
+    "tagline": "Where the World Comes Together",
+    "description": "Universal VR bridge platform connecting all virtual reality worlds and platforms"
+  },
+  "ui": {
+    "main_window": {
+      "title": "Helyxium - Universal VR Bridge",
+      "menu": {
+        "file": "File",
+        "edit": "Edit",
+        "view": "View",
+        "tools": "Tools",
+        "help": "Help"
+      },
+      "tabs": {
+        "dashboard": "Dashboard",
+        "platforms": "Platforms",
+        "worlds": "Worlds",
+        "social": "Social",
+        "settings": "Settings"
+      }
+    },
+    "dashboard": {
+      "welcome": "Welcome to Helyxium",
+      "status": "System Status",
+      "connected_platforms": "Connected Platforms",
+      "recent_worlds": "Recent Worlds",
+      "quick_actions": "Quick Actions"
+    },
+    "platforms": {
+      "title": "VR Platforms",
+      "connected": "Connected",
+      "available": "Available",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "configure": "Configure"
+    },
+    "worlds": {
+      "title": "VR Worlds",
+      "discover": "Discover",
+      "favorites": "Favorites",
+      "recent": "Recent",
+      "join": "Join World",
+      "bookmark": "Bookmark"
+    },
+    "social": {
+      "title": "Social",
+      "friends": "Friends",
+      "messages": "Messages",
+      "presence": "Presence",
+      "groups": "Groups"
+    },
+    "settings": {
+      "title": "Settings",
+      "general": "General",
+      "platforms": "Platforms",
+      "security": "Security",
+      "privacy": "Privacy",
+      "advanced": "Advanced"
+    }
+  },
+  "messages": {
+    "loading": "Loading...",
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information"
+  },
+  "errors": {
+    "platform_connection_failed": "Failed to connect to platform",
+    "hardware_not_detected": "VR hardware not detected",
+    "network_error": "Network connection error",
+    "authentication_failed": "Authentication failed",
+    "permission_denied": "Permission denied"
+  },
+  "buttons": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "apply": "Apply",
+    "close": "Close",
+    "save": "Save",
+    "load": "Load",
+    "refresh": "Refresh",
+    "connect": "Connect",
+    "disconnect": "Disconnect"
+  }
+}
