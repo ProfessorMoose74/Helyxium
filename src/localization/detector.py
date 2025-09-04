@@ -121,27 +121,31 @@ class LanguageDetector:
         if not winreg:
             return None
         
-        try:
-            # Try to get user's preferred UI language
-            with winreg.OpenKey(
-                winreg.HKEY_CURRENT_USER,
-                r"Control Panel\International"
-            ) as key:
-                locale_name = winreg.QueryValueEx(key, "LocaleName")[0]
-                return self._normalize_language_code(locale_name)
-        except Exception:
-            pass
+        # Try multiple registry approaches for different Windows versions
+        registry_attempts = [
+            # Windows 10/11 preferred UI language
+            (winreg.HKEY_CURRENT_USER, r"Control Panel\International", "LocaleName"),
+            # Windows 10/11 user profile
+            (winreg.HKEY_CURRENT_USER, r"Control Panel\International\User Profile", "Languages"),
+            # System default UI language
+            (winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Nls\Language", "Default"),
+            # Fallback to install language
+            (winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Nls\Language", "InstallLanguage")
+        ]
         
-        try:
-            # Try system default UI language
-            with winreg.OpenKey(
-                winreg.HKEY_LOCAL_MACHINE,
-                r"SYSTEM\CurrentControlSet\Control\Nls\Language"
-            ) as key:
-                default_lang = winreg.QueryValueEx(key, "Default")[0]
-                return self._windows_lcid_to_language(default_lang)
-        except Exception:
-            pass
+        for hkey, subkey, value_name in registry_attempts:
+            try:
+                with winreg.OpenKey(hkey, subkey) as key:
+                    value = winreg.QueryValueEx(key, value_name)[0]
+                    if value_name == "Default" or value_name == "InstallLanguage":
+                        result = self._windows_lcid_to_language(value)
+                    else:
+                        result = self._normalize_language_code(value)
+                    
+                    if result:
+                        return result
+            except (WindowsError, FileNotFoundError, OSError):
+                continue
         
         return None
     

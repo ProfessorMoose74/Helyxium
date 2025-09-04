@@ -5,6 +5,7 @@ Main application class that orchestrates all components.
 
 import sys
 import logging
+from pathlib import Path
 from typing import Optional
 from PyQt6.QtWidgets import QApplication, QSystemTrayIcon
 from PyQt6.QtCore import QObject, pyqtSignal, QTimer
@@ -70,6 +71,11 @@ class HelyxiumApp(QObject):
             self.qt_app.setApplicationVersion("0.1.0")
             self.qt_app.setOrganizationName("Helyxium")
             self.qt_app.setOrganizationDomain("helyxium.com")
+            
+            # Set application icon
+            logo_path = str(Path(__file__).parent.parent.parent / "assets" / "icons" / "helyxium_logo.png")
+            if Path(logo_path).exists():
+                self.qt_app.setWindowIcon(QIcon(logo_path))
             
             # Auto-detect language
             detected_language = self.language_detector.detect_system_language()
@@ -174,8 +180,24 @@ class HelyxiumApp(QObject):
         """Setup system tray icon and menu."""
         try:
             self.system_tray = QSystemTrayIcon(self)
-            # TODO: Set proper icon
-            # self.system_tray.setIcon(QIcon(":/icons/helyxium.png"))
+            # Set Helyxium logo as system tray icon
+            assets_path = Path(__file__).parent.parent.parent / "assets" / "icons"
+            tray_icon_paths = [
+                assets_path / "helyxium_tray.png",      # Optimized for system tray
+                assets_path / "helyxium_small.png",     # Small version fallback  
+                assets_path / "helyxium_logo.png",      # Original logo fallback
+            ]
+            
+            icon_set = False
+            for icon_path in tray_icon_paths:
+                if icon_path.exists():
+                    self.system_tray.setIcon(QIcon(str(icon_path)))
+                    icon_set = True
+                    break
+            
+            if not icon_set:
+                # Final fallback to default system tray icon
+                self.system_tray.setIcon(self.qt_app.style().standardIcon(self.qt_app.style().SP_ComputerIcon))
             self.system_tray.setToolTip("Helyxium - Universal VR Bridge")
             
             # TODO: Add system tray menu

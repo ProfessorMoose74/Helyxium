@@ -24,6 +24,11 @@ try:
 except ImportError:
     winreg = None
 
+try:
+    import shutil
+except ImportError:
+    shutil = None
+
 
 class VRPlatform(Enum):
     """VR platform types."""
@@ -109,14 +114,22 @@ class VRPlatformDetector:
                     os.path.expandvars(r"%PROGRAMFILES(X86)%\Steam"),
                 ])
                 
-                # Check registry for Steam path
+                # Check registry for Steam path (multiple possible keys)
                 if winreg:
-                    try:
-                        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam") as key:
-                            steam_path = winreg.QueryValueEx(key, "SteamPath")[0]
-                            steam_paths.append(steam_path)
-                    except:
-                        pass
+                    registry_paths = [
+                        (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam"),
+                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Valve\Steam"),
+                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam")
+                    ]
+                    
+                    for hkey, subkey in registry_paths:
+                        try:
+                            with winreg.OpenKey(hkey, subkey) as key:
+                                steam_path = winreg.QueryValueEx(key, "SteamPath")[0]
+                                if steam_path and steam_path not in steam_paths:
+                                    steam_paths.append(steam_path)
+                        except (WindowsError, FileNotFoundError, OSError):
+                            continue
             
             elif self._system == "darwin":  # macOS
                 steam_paths.extend([
@@ -125,12 +138,21 @@ class VRPlatformDetector:
                 ])
             
             elif self._system == "linux":
+                # Modern Linux distributions have various Steam installation paths
                 steam_paths.extend([
                     os.path.expanduser("~/.steam"),
                     os.path.expanduser("~/.local/share/Steam"),
+                    os.path.expanduser("~/.var/app/com.valvesoftware.Steam/home/.local/share/Steam"),  # Flatpak
+                    os.path.expanduser("/var/lib/snapd/snap/steam/common/.local/share/Steam"),  # Snap
                     "/usr/local/games/steam",
-                    "/opt/steam"
+                    "/opt/steam",
+                    "/usr/share/steam",
+                    "/var/lib/steam"
                 ])
+                
+                # Check for Steam via package manager
+                if shutil and shutil.which("steam"):
+                    steam_paths.append("/usr/bin/steam")
             
             steam_info = None
             for steam_path in steam_paths:
@@ -255,14 +277,24 @@ class VRPlatformDetector:
                     os.path.expandvars(r"%PROGRAMFILES(X86)%\Oculus"),
                 ])
                 
-                # Check registry
+                # Check registry (multiple possible keys for different Windows versions)
                 if winreg:
-                    try:
-                        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Oculus VR, LLC\Oculus") as key:
-                            oculus_path = winreg.QueryValueEx(key, "Base")[0]
-                            oculus_paths.append(oculus_path)
-                    except:
-                        pass
+                    registry_paths = [
+                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Oculus VR, LLC\Oculus", "Base"),
+                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Oculus VR, LLC\Oculus", "Base"),
+                        (winreg.HKEY_CURRENT_USER, r"Software\Oculus VR, LLC\Oculus", "Base"),
+                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Meta\Oculus", "InstallPath"),
+                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Meta\Oculus", "InstallPath")
+                    ]
+                    
+                    for hkey, subkey, value_name in registry_paths:
+                        try:
+                            with winreg.OpenKey(hkey, subkey) as key:
+                                oculus_path = winreg.QueryValueEx(key, value_name)[0]
+                                if oculus_path and oculus_path not in oculus_paths:
+                                    oculus_paths.append(oculus_path)
+                        except (WindowsError, FileNotFoundError, OSError):
+                            continue
             
             # Meta Quest (standalone) - check for Quest Link/Air Link
             meta_info = None
@@ -454,15 +486,23 @@ class VRPlatformDetector:
             # Check for Windows MR portal
             wmr_running = self._is_process_running("mixedrealityportal")
             
-            # Check registry for WMR installation
+            # Check registry for WMR installation (multiple possible locations)
             wmr_installed = False
             if winreg:
-                try:
-                    with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 
-                                      r"SOFTWARE\Microsoft\Windows\CurrentVersion\Holographic") as key:
-                        wmr_installed = True
-                except:
-                    pass
+                wmr_registry_paths = [
+                    r"SOFTWARE\Microsoft\Windows\CurrentVersion\Holographic",
+                    r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Holographic",
+                    r"SOFTWARE\Microsoft\MixedReality",
+                    r"SOFTWARE\Microsoft\Windows Mixed Reality"
+                ]
+                
+                for reg_path in wmr_registry_paths:
+                    try:
+                        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, reg_path) as key:
+                            wmr_installed = True
+                            break
+                    except (WindowsError, FileNotFoundError, OSError):
+                        continue
             
             if wmr_installed or wmr_running:
                 wmr_info = VRPlatformInfo(
@@ -585,23 +625,51 @@ class VRPlatformDetector:
         """Check if a process is currently running."""
         try:
             if self._system == "windows":
-                result = subprocess.run(
-                    ["tasklist", "/FI", f"IMAGENAME eq {process_name}*"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5
-                )
-                return process_name.lower() in result.stdout.lower()
+                # Try multiple Windows process detection methods
+                methods = [
+                    (["tasklist", "/FI", f"IMAGENAME eq {process_name}*"], lambda out: process_name.lower() in out.lower()),
+                    (["wmic", "process", "where", f"name='{process_name}*'", "get", "name"], lambda out: process_name.lower() in out.lower()),
+                    (["powershell", "-Command", f"Get-Process -Name {process_name.replace('.exe', '')} -ErrorAction SilentlyContinue"], lambda out: len(out.strip()) > 0)
+                ]
+                
+                for cmd, check_func in methods:
+                    try:
+                        result = subprocess.run(
+                            cmd,
+                            capture_output=True,
+                            text=True,
+                            timeout=10,
+                            creationflags=subprocess.CREATE_NO_WINDOW if self._system == "windows" else 0
+                        )
+                        if result.returncode == 0 and check_func(result.stdout):
+                            return True
+                    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+                        continue
             else:
-                result = subprocess.run(
+                # Linux/macOS process detection
+                methods = [
                     ["pgrep", "-f", process_name],
-                    capture_output=True,
-                    text=True,
-                    timeout=5
-                )
-                return result.returncode == 0
+                    ["pidof", process_name],
+                    ["ps", "aux"]  # Fallback: search in full process list
+                ]
+                
+                for i, cmd in enumerate(methods):
+                    try:
+                        result = subprocess.run(
+                            cmd,
+                            capture_output=True,
+                            text=True,
+                            timeout=10
+                        )
+                        if i < 2:  # pgrep, pidof
+                            return result.returncode == 0
+                        else:  # ps aux
+                            return process_name.lower() in result.stdout.lower()
+                    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+                        continue
         except Exception:
-            return False
+            pass
+        return False
     
     def _get_steam_version(self, steam_path: str) -> Optional[str]:
         """Get Steam version."""
