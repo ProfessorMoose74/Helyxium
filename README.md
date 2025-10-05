@@ -141,6 +141,17 @@ See [UPDATES.md](UPDATES.md) for detailed information about recent compatibility
 
 ## Development
 
+### Quick Start
+
+```bash
+# Windows
+setup.bat
+
+# Linux/macOS
+chmod +x setup.sh
+./setup.sh
+```
+
 ### Requirements
 - Python 3.9+
 - Poetry (recommended) or pip
@@ -150,25 +161,59 @@ See [UPDATES.md](UPDATES.md) for detailed information about recent compatibility
 ### Development Setup
 
 ```bash
-# Install development dependencies
-poetry install --with dev
+# Quick setup (all platforms)
+make install-dev
 
-# Run tests
-poetry run pytest
-
-# Format code
-poetry run black .
-
-# Type checking
-poetry run mypy src/
-
-# Linting
-poetry run flake8 src/
+# Or manually
+pip install -r requirements.txt
+pip install pytest pytest-cov black flake8 mypy pre-commit
+pre-commit install
 ```
+
+### Development Commands
+
+```bash
+# Run tests
+make test          # Run all tests
+make test-cov      # Run with coverage report
+
+# Code quality
+make lint          # Run all linters
+make format        # Format code
+make type-check    # Type checking
+make security      # Security scan
+
+# Run application
+make run           # Production mode
+make dev           # Development mode
+```
+
+### Docker Development
+
+```bash
+# Build and run with Docker
+make docker
+make docker-run
+
+# Development with hot reload
+make docker-dev
+
+# Stop containers
+make docker-stop
+```
+
+## CI/CD
+
+Helyxium includes comprehensive CI/CD pipelines:
+
+- **Continuous Integration**: Automated testing on Python 3.9-3.13 across Windows, macOS, and Linux
+- **Code Quality**: Automated linting, formatting, and security scanning
+- **CodeQL Analysis**: Advanced security analysis with GitHub CodeQL
+- **Automated Releases**: Tag-based releases with multi-platform builds
 
 ## Contributing
 
-We welcome contributions! Please see our contributing guidelines and feel free to submit issues or pull requests.
+We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 

@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QSize
 from PyQt6.QtGui import QAction, QIcon, QFont, QPixmap
 
+from .. import __version__
 from .themes import ThemeManager
 from .logo_3d import create_logo_widget
 from ..localization.manager import LocalizationManager, tr
@@ -609,9 +610,9 @@ class MainWindow(QMainWindow):
         <h2>{tr("app.name")}</h2>
         <p>{tr("app.tagline")}</p>
         <p>{tr("app.description")}</p>
-        <p>Version: 0.1.0</p>
+        <p>Version: {__version__}</p>
         """
-        
+
         QMessageBox.about(self, "About Helyxium", about_text)
     
     def closeEvent(self, event):

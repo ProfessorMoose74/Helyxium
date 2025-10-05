@@ -744,12 +744,17 @@ class VRHardwareDetector:
 
 
 class HardwareDetector(VRHardwareDetector):
-    """Alias for VRHardwareDetector to match main application expectations."""
-    
+    """
+    Extended VR hardware detector with change tracking.
+
+    Extends VRHardwareDetector with additional functionality for monitoring
+    hardware configuration changes over time.
+    """
+
     def __init__(self):
         super().__init__()
         self._previous_state = None
-    
+
     def has_hardware_changed(self) -> bool:
         """Check if hardware configuration has changed since last detection."""
         current_devices = [

@@ -1,3 +1,4 @@
+# PyInstaller version file - Keep version in sync with src/__init__.py
 VSVersionInfo(
   ffi=FixedFileInfo(
     filevers=(0, 1, 0, 0),

@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  helyxium:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: helyxium:latest
+    container_name: helyxium-vr-bridge
+    restart: unless-stopped
+
+    # Environment configuration
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - HELYXIUM_ENV=${HELYXIUM_ENV:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+
+    # Volume mounts
+    volumes:
+      # Config persistence
+      - helyxium-config:/home/helyxium/.config/helyxium
+      # Logs
+      - ./logs:/app/logs
+      # USB device access (for VR hardware detection)
+      - /dev/bus/usb:/dev/bus/usb
+
+    # Network configuration
+    ports:
+      - "8000:8000"  # FastAPI server
+      - "8080:8080"  # WebSocket server
+
+    # Device access for VR hardware
+    devices:
+      - /dev/dri:/dev/dri  # GPU access
+
+    # Privileged mode for USB device detection
+    privileged: true
+
+    # X11 display support (for GUI)
+    network_mode: host
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+  # Optional: Development environment
+  helyxium-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: helyxium:dev
+    container_name: helyxium-dev
+    restart: "no"
+
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - HELYXIUM_ENV=development
+      - LOG_LEVEL=DEBUG
+
+    volumes:
+      # Mount source code for live development
+      - .:/app
+      - helyxium-dev-config:/home/helyxium/.config/helyxium
+      - /dev/bus/usb:/dev/bus/usb
+
+    ports:
+      - "8000:8000"
+      - "8080:8080"
+
+    devices:
+      - /dev/dri:/dev/dri
+
+    privileged: true
+    network_mode: host
+
+    # Override command for development
+    command: python main.py
+
+    profiles:
+      - dev
+
+volumes:
+  helyxium-config:
+    driver: local
+  helyxium-dev-config:
+    driver: local
+
+networks:
+  default:
+    name: helyxium-network

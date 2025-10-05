@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import QApplication, QSystemTrayIcon
 from PyQt6.QtCore import QObject, pyqtSignal, QTimer
 from PyQt6.QtGui import QIcon
 
+from .. import __version__
 from ..localization.detector import LanguageDetector
 from ..localization.manager import LocalizationManager
 from ..ui.themes import ThemeManager
@@ -68,7 +69,7 @@ class HelyxiumApp(QObject):
             # Create Qt application
             self.qt_app = QApplication(sys.argv)
             self.qt_app.setApplicationName("Helyxium")
-            self.qt_app.setApplicationVersion("0.1.0")
+            self.qt_app.setApplicationVersion(__version__)
             self.qt_app.setOrganizationName("Helyxium")
             self.qt_app.setOrganizationDomain("helyxium.com")
             
@@ -209,11 +210,9 @@ class HelyxiumApp(QObject):
     def _start_detection_timers(self):
         """Start periodic hardware and platform detection."""
         # Check for hardware changes every 5 seconds
-        self.hardware_check_timer.timeout.connect(self._check_hardware)
         self.hardware_check_timer.start(5000)
-        
+
         # Check for platform changes every 10 seconds
-        self.platform_check_timer.timeout.connect(self._check_platforms)
         self.platform_check_timer.start(10000)
     
     def _perform_initial_detections(self):

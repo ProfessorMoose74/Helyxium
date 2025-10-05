@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "helyxium"
-version = "0.1.0"
+version = "0.1.0"  # Note: Keep in sync with src/__init__.py
 description = "Universal VR bridge platform connecting all virtual reality worlds and platforms"
 authors = ["Helyxium Team <team@helyxium.com>"]
 readme = "README.md"
@@ -24,6 +24,7 @@ PyOpenGL = "^3.1.7"
 PyOpenGL-accelerate = "^3.1.7"
 moderngl = "^5.8.2"
 pyrr = "^0.10.3"
+pyusb = "^1.2.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
@@ -35,7 +36,7 @@ pyinstaller = "^6.1.0"
 pre-commit = "^3.5.0"
 
 [tool.poetry.scripts]
-helyxium = "src.main:main"
+helyxium = "main:main"
 
 [build-system]
 requires = ["poetry-core"]
@@ -43,7 +44,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 88
-target-version = ['py311']
+target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -103,3 +104,18 @@ exclude_lines = [
     "if 0:",
     "if __name__ == .__main__.:"
 ]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+skip_gitignore = true
+
+[tool.bandit]
+exclude_dirs = [
+    "tests/",
+    "venv/",
+    ".venv/",
+    "build/",
+    "dist/"
+]
+skips = ["B101", "B601"]

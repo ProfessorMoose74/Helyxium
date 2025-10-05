@@ -21,7 +21,7 @@ import venv
 
 # Installer configuration
 INSTALLER_VERSION = "1.0.0"
-HELYXIUM_VERSION = "0.1.0"
+HELYXIUM_VERSION = "0.1.0"  # Note: Keep in sync with src/__init__.py
 REPO_URL = "https://github.com/helyxium/helyxium"
 PYTHON_MIN_VERSION = (3, 9)
 PYTHON_MAX_VERSION = (3, 13)
