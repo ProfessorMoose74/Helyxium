@@ -1,0 +1,92 @@
+{
+  "app": {
+    "name": "Helyxium",
+    "tagline": "世界がここに集まる",
+    "description": "すべての仮想現実世界とプラットフォームを接続する汎用VRブリッジプラットフォーム"
+  },
+  "ui": {
+    "main_window": {
+      "title": "Helyxium - 汎用VRブリッジ",
+      "menu": {
+        "file": "ファイル",
+        "edit": "編集",
+        "view": "表示",
+        "tools": "ツール",
+        "help": "ヘルプ"
+      },
+      "tabs": {
+        "dashboard": "ダッシュボード",
+        "platforms": "プラットフォーム",
+        "worlds": "ワールド",
+        "social": "ソーシャル",
+        "settings": "設定"
+      }
+    },
+    "dashboard": {
+      "welcome": "Helyxiumへようこそ",
+      "status": "システムステータス",
+      "connected_platforms": "接続済みプラットフォーム",
+      "recent_worlds": "最近のワールド",
+      "quick_actions": "クイックアクション"
+    },
+    "platforms": {
+      "title": "VRプラットフォーム",
+      "connected": "接続済み",
+      "available": "利用可能",
+      "connect": "接続",
+      "disconnect": "切断",
+      "configure": "設定"
+    },
+    "worlds": {
+      "title": "VRワールド",
+      "discover": "発見",
+      "favorites": "お気に入り",
+      "recent": "最近",
+      "join": "ワールドに参加",
+      "bookmark": "ブックマーク"
+    },
+    "social": {
+      "title": "ソーシャル",
+      "friends": "フレンド",
+      "messages": "メッセージ",
+      "presence": "プレゼンス",
+      "groups": "グループ"
+    },
+    "settings": {
+      "title": "設定",
+      "general": "一般",
+      "platforms": "プラットフォーム",
+      "security": "セキュリティ",
+      "privacy": "プライバシー",
+      "advanced": "詳細"
+    }
+  },
+  "messages": {
+    "loading": "読み込み中...",
+    "connecting": "接続中...",
+    "connected": "接続済み",
+    "disconnected": "切断済み",
+    "error": "エラー",
+    "success": "成功",
+    "warning": "警告",
+    "info": "情報"
+  },
+  "errors": {
+    "platform_connection_failed": "プラットフォームへの接続に失敗しました",
+    "hardware_not_detected": "VRハードウェアが検出されませんでした",
+    "network_error": "ネットワーク接続エラー",
+    "authentication_failed": "認証に失敗しました",
+    "permission_denied": "権限が拒否されました"
+  },
+  "buttons": {
+    "ok": "OK",
+    "cancel": "キャンセル",
+    "apply": "適用",
+    "close": "閉じる",
+    "save": "保存",
+    "load": "読み込み",
+    "refresh": "更新",
+    "connect": "接続",
+    "disconnect": "切断"
+  }
+}

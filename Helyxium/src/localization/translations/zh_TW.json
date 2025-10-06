@@ -1,0 +1,92 @@
+{
+  "app": {
+    "name": "Helyxium",
+    "tagline": "世界在此匯聚",
+    "description": "連接所有虛擬現實世界和平台的通用VR橋接平台"
+  },
+  "ui": {
+    "main_window": {
+      "title": "Helyxium - 通用VR橋接平台",
+      "menu": {
+        "file": "檔案",
+        "edit": "編輯",
+        "view": "檢視",
+        "tools": "工具",
+        "help": "說明"
+      },
+      "tabs": {
+        "dashboard": "儀表板",
+        "platforms": "平台",
+        "worlds": "世界",
+        "social": "社交",
+        "settings": "設定"
+      }
+    },
+    "dashboard": {
+      "welcome": "歡迎使用Helyxium",
+      "status": "系統狀態",
+      "connected_platforms": "已連接平台",
+      "recent_worlds": "最近訪問的世界",
+      "quick_actions": "快速操作"
+    },
+    "platforms": {
+      "title": "VR平台",
+      "connected": "已連接",
+      "available": "可用",
+      "connect": "連接",
+      "disconnect": "中斷連接",
+      "configure": "設定"
+    },
+    "worlds": {
+      "title": "VR世界",
+      "discover": "探索",
+      "favorites": "收藏",
+      "recent": "最近",
+      "join": "進入世界",
+      "bookmark": "加入書籤"
+    },
+    "social": {
+      "title": "社交",
+      "friends": "好友",
+      "messages": "訊息",
+      "presence": "線上狀態",
+      "groups": "群組"
+    },
+    "settings": {
+      "title": "設定",
+      "general": "一般",
+      "platforms": "平台",
+      "security": "安全性",
+      "privacy": "隱私",
+      "advanced": "進階"
+    }
+  },
+  "messages": {
+    "loading": "載入中...",
+    "connecting": "連接中...",
+    "connected": "已連接",
+    "disconnected": "已中斷連接",
+    "error": "錯誤",
+    "success": "成功",
+    "warning": "警告",
+    "info": "資訊"
+  },
+  "errors": {
+    "platform_connection_failed": "連接平台失敗",
+    "hardware_not_detected": "未偵測到VR硬體",
+    "network_error": "網路連接錯誤",
+    "authentication_failed": "身分驗證失敗",
+    "permission_denied": "權限被拒絕"
+  },
+  "buttons": {
+    "ok": "確定",
+    "cancel": "取消",
+    "apply": "套用",
+    "close": "關閉",
+    "save": "儲存",
+    "load": "載入",
+    "refresh": "重新整理",
+    "connect": "連接",
+    "disconnect": "中斷連接"
+  }
+}
