@@ -9,15 +9,13 @@ Detects installed VR software and available APIs:
 - Available APIs and SDK versions
 """
 
+import json
 import os
 import platform
 import subprocess
-import json
-import winreg
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Set
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
 try:
     import winreg
@@ -32,6 +30,7 @@ except ImportError:
 
 class VRPlatform(Enum):
     """VR platform types."""
+
     STEAM_VR = "steamvr"
     META_QUEST = "meta_quest"
     OCULUS_PC = "oculus_pc"
@@ -48,6 +47,7 @@ class VRPlatform(Enum):
 @dataclass
 class VRPlatformInfo:
     """Information about a detected VR platform."""
+
     platform: VRPlatform
     name: str
     version: Optional[str]
@@ -63,21 +63,21 @@ class VRPlatformInfo:
 
 class VRPlatformDetector:
     """Detects installed VR platforms and software."""
-    
+
     def __init__(self) -> None:
         """Initialize the VR platform detector."""
         self._detected_platforms: List[VRPlatformInfo] = []
         self._system = platform.system().lower()
-    
+
     def detect_vr_platforms(self) -> Dict[str, Any]:
         """
         Detect installed VR software and available APIs.
-        
+
         Returns:
             Dictionary with detected platforms and their information
         """
         self._detected_platforms = []
-        
+
         detection_methods = [
             self._detect_steam_vr,
             self._detect_meta_oculus,
@@ -90,38 +90,43 @@ class VRPlatformDetector:
             self._detect_varjo,
             self._detect_pico_connect,
         ]
-        
+
         for method in detection_methods:
             try:
                 method()
             except Exception as e:
                 print(f"Platform detection method {method.__name__} failed: {e}")
-        
+
         return self._compile_platform_results()
-    
+
     def _detect_steam_vr(self) -> None:
         """Detect Steam VR installation and games."""
         try:
             # Common Steam installation paths
             steam_paths = []
-            
+
             if self._system == "windows":
                 # Windows Steam paths
-                steam_paths.extend([
-                    r"C:\Program Files (x86)\Steam",
-                    r"C:\Program Files\Steam",
-                    os.path.expandvars(r"%PROGRAMFILES%\Steam"),
-                    os.path.expandvars(r"%PROGRAMFILES(X86)%\Steam"),
-                ])
-                
+                steam_paths.extend(
+                    [
+                        r"C:\Program Files (x86)\Steam",
+                        r"C:\Program Files\Steam",
+                        os.path.expandvars(r"%PROGRAMFILES%\Steam"),
+                        os.path.expandvars(r"%PROGRAMFILES(X86)%\Steam"),
+                    ]
+                )
+
                 # Check registry for Steam path (multiple possible keys)
                 if winreg:
                     registry_paths = [
                         (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam"),
                         (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Valve\Steam"),
-                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam")
+                        (
+                            winreg.HKEY_LOCAL_MACHINE,
+                            r"SOFTWARE\WOW6432Node\Valve\Steam",
+                        ),
                     ]
-                    
+
                     for hkey, subkey in registry_paths:
                         try:
                             with winreg.OpenKey(hkey, subkey) as key:
@@ -130,74 +135,84 @@ class VRPlatformDetector:
                                     steam_paths.append(steam_path)
                         except (WindowsError, FileNotFoundError, OSError):
                             continue
-            
+
             elif self._system == "darwin":  # macOS
-                steam_paths.extend([
-                    os.path.expanduser("~/Library/Application Support/Steam"),
-                    "/Applications/Steam.app/Contents/MacOS"
-                ])
-            
+                steam_paths.extend(
+                    [
+                        os.path.expanduser("~/Library/Application Support/Steam"),
+                        "/Applications/Steam.app/Contents/MacOS",
+                    ]
+                )
+
             elif self._system == "linux":
                 # Modern Linux distributions have various Steam installation paths
-                steam_paths.extend([
-                    os.path.expanduser("~/.steam"),
-                    os.path.expanduser("~/.local/share/Steam"),
-                    os.path.expanduser("~/.var/app/com.valvesoftware.Steam/home/.local/share/Steam"),  # Flatpak
-                    os.path.expanduser("/var/lib/snapd/snap/steam/common/.local/share/Steam"),  # Snap
-                    "/usr/local/games/steam",
-                    "/opt/steam",
-                    "/usr/share/steam",
-                    "/var/lib/steam"
-                ])
-                
+                steam_paths.extend(
+                    [
+                        os.path.expanduser("~/.steam"),
+                        os.path.expanduser("~/.local/share/Steam"),
+                        os.path.expanduser(
+                            "~/.var/app/com.valvesoftware.Steam/home/.local/share/Steam"
+                        ),  # Flatpak
+                        os.path.expanduser(
+                            "/var/lib/snapd/snap/steam/common/.local/share/Steam"
+                        ),  # Snap
+                        "/usr/local/games/steam",
+                        "/opt/steam",
+                        "/usr/share/steam",
+                        "/var/lib/steam",
+                    ]
+                )
+
                 # Check for Steam via package manager
                 if shutil and shutil.which("steam"):
                     steam_paths.append("/usr/bin/steam")
-            
+
             steam_info = None
             for steam_path in steam_paths:
                 if os.path.exists(steam_path):
                     steam_info = self._analyze_steam_installation(steam_path)
                     break
-            
+
             if steam_info:
                 self._detected_platforms.append(steam_info)
-                
+
         except Exception as e:
             print(f"Steam VR detection failed: {e}")
-    
+
     def _analyze_steam_installation(self, steam_path: str) -> Optional[VRPlatformInfo]:
         """Analyze Steam installation for VR capabilities."""
         try:
             # Check for SteamVR
             steamvr_path = None
             vr_games = []
-            
+
             # Look for SteamVR installation
             possible_steamvr_paths = [
                 os.path.join(steam_path, "steamapps", "common", "SteamVR"),
                 os.path.join(steam_path, "steamapps", "common", "SteamVRDriver"),
             ]
-            
+
             for path in possible_steamvr_paths:
                 if os.path.exists(path):
                     steamvr_path = path
                     break
-            
+
             # Check if SteamVR is running
-            is_running = self._is_process_running("vrmonitor") or self._is_process_running("vrserver")
-            
+            is_running = self._is_process_running(
+                "vrmonitor"
+            ) or self._is_process_running("vrserver")
+
             # Scan for VR games
             steamapps_path = os.path.join(steam_path, "steamapps", "common")
             if os.path.exists(steamapps_path):
                 vr_games = self._scan_steam_vr_games(steamapps_path)
-            
+
             # Get Steam version
             version = self._get_steam_version(steam_path)
-            
+
             # Check API availability
             api_available = steamvr_path is not None
-            
+
             return VRPlatformInfo(
                 platform=VRPlatform.STEAM_VR,
                 name="Steam VR",
@@ -206,24 +221,28 @@ class VRPlatformDetector:
                 is_running=is_running,
                 is_installed=steamvr_path is not None,
                 api_available=api_available,
-                sdk_version=self._get_steamvr_sdk_version(steamvr_path) if steamvr_path else None,
+                sdk_version=(
+                    self._get_steamvr_sdk_version(steamvr_path)
+                    if steamvr_path
+                    else None
+                ),
                 supported_games=vr_games,
                 capabilities={"lighthouse_tracking", "room_scale", "steam_overlay"},
                 additional_info={
                     "steam_path": steam_path,
                     "steamvr_path": steamvr_path,
-                    "game_count": len(vr_games)
-                }
+                    "game_count": len(vr_games),
+                },
             )
-            
+
         except Exception as e:
             print(f"Steam analysis failed: {e}")
             return None
-    
+
     def _scan_steam_vr_games(self, steamapps_path: str) -> List[str]:
         """Scan for VR games in Steam installation."""
         vr_games = []
-        
+
         # Known VR game folder patterns
         vr_game_patterns = [
             "Half-Life Alyx",
@@ -246,9 +265,9 @@ class VRPlatformDetector:
             "Gorn",
             "Space Pirate Trainer",
             "Tilt Brush",
-            "Google Earth VR"
+            "Google Earth VR",
         ]
-        
+
         try:
             for item in os.listdir(steamapps_path):
                 item_path = os.path.join(steamapps_path, item)
@@ -260,33 +279,55 @@ class VRPlatformDetector:
                             break
         except Exception:
             pass
-        
+
         return vr_games
-    
+
     def _detect_meta_oculus(self) -> None:
         """Detect Meta/Oculus software."""
         try:
             oculus_paths = []
-            
+
             if self._system == "windows":
                 # Windows Oculus paths
-                oculus_paths.extend([
-                    r"C:\Program Files\Oculus",
-                    r"C:\Program Files (x86)\Oculus",
-                    os.path.expandvars(r"%PROGRAMFILES%\Oculus"),
-                    os.path.expandvars(r"%PROGRAMFILES(X86)%\Oculus"),
-                ])
-                
+                oculus_paths.extend(
+                    [
+                        r"C:\Program Files\Oculus",
+                        r"C:\Program Files (x86)\Oculus",
+                        os.path.expandvars(r"%PROGRAMFILES%\Oculus"),
+                        os.path.expandvars(r"%PROGRAMFILES(X86)%\Oculus"),
+                    ]
+                )
+
                 # Check registry (multiple possible keys for different Windows versions)
                 if winreg:
                     registry_paths = [
-                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Oculus VR, LLC\Oculus", "Base"),
-                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Oculus VR, LLC\Oculus", "Base"),
-                        (winreg.HKEY_CURRENT_USER, r"Software\Oculus VR, LLC\Oculus", "Base"),
-                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Meta\Oculus", "InstallPath"),
-                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Meta\Oculus", "InstallPath")
+                        (
+                            winreg.HKEY_LOCAL_MACHINE,
+                            r"SOFTWARE\Oculus VR, LLC\Oculus",
+                            "Base",
+                        ),
+                        (
+                            winreg.HKEY_LOCAL_MACHINE,
+                            r"SOFTWARE\WOW6432Node\Oculus VR, LLC\Oculus",
+                            "Base",
+                        ),
+                        (
+                            winreg.HKEY_CURRENT_USER,
+                            r"Software\Oculus VR, LLC\Oculus",
+                            "Base",
+                        ),
+                        (
+                            winreg.HKEY_LOCAL_MACHINE,
+                            r"SOFTWARE\Meta\Oculus",
+                            "InstallPath",
+                        ),
+                        (
+                            winreg.HKEY_LOCAL_MACHINE,
+                            r"SOFTWARE\WOW6432Node\Meta\Oculus",
+                            "InstallPath",
+                        ),
                     ]
-                    
+
                     for hkey, subkey, value_name in registry_paths:
                         try:
                             with winreg.OpenKey(hkey, subkey) as key:
@@ -295,37 +336,43 @@ class VRPlatformDetector:
                                     oculus_paths.append(oculus_path)
                         except (WindowsError, FileNotFoundError, OSError):
                             continue
-            
+
             # Meta Quest (standalone) - check for Quest Link/Air Link
             meta_info = None
             for oculus_path in oculus_paths:
                 if os.path.exists(oculus_path):
                     meta_info = self._analyze_oculus_installation(oculus_path)
                     break
-            
+
             if meta_info:
                 self._detected_platforms.append(meta_info)
-                
+
         except Exception as e:
             print(f"Meta/Oculus detection failed: {e}")
-    
-    def _analyze_oculus_installation(self, oculus_path: str) -> Optional[VRPlatformInfo]:
+
+    def _analyze_oculus_installation(
+        self, oculus_path: str
+    ) -> Optional[VRPlatformInfo]:
         """Analyze Oculus/Meta installation."""
         try:
             # Check if Oculus software is running
-            is_running = (self._is_process_running("oculusclient") or 
-                         self._is_process_running("oculusruntime") or
-                         self._is_process_running("ovrservice"))
-            
+            is_running = (
+                self._is_process_running("oculusclient")
+                or self._is_process_running("oculusruntime")
+                or self._is_process_running("ovrservice")
+            )
+
             # Get version
             version = self._get_oculus_version(oculus_path)
-            
+
             # Check for Oculus games
             games = self._scan_oculus_games(oculus_path)
-            
+
             # Check API availability
-            api_available = os.path.exists(os.path.join(oculus_path, "Support", "oculus-runtime"))
-            
+            api_available = os.path.exists(
+                os.path.join(oculus_path, "Support", "oculus-runtime")
+            )
+
             return VRPlatformInfo(
                 platform=VRPlatform.OCULUS_PC,
                 name="Oculus PC",
@@ -336,27 +383,34 @@ class VRPlatformDetector:
                 api_available=api_available,
                 sdk_version=self._get_oculus_sdk_version(oculus_path),
                 supported_games=games,
-                capabilities={"quest_link", "air_link", "oculus_store", "hand_tracking"},
+                capabilities={
+                    "quest_link",
+                    "air_link",
+                    "oculus_store",
+                    "hand_tracking",
+                },
                 additional_info={
                     "supports_quest_link": True,
                     "supports_air_link": True,
-                    "game_count": len(games)
-                }
+                    "game_count": len(games),
+                },
             )
-            
+
         except Exception as e:
             print(f"Oculus analysis failed: {e}")
             return None
-    
+
     def _detect_playstation_vr(self) -> None:
         """Detect PlayStation VR software (PC adapter)."""
         try:
             # PlayStation VR doesn't have official PC support,
             # but check for third-party drivers like TrueOpenVR
-            
+
             # Check for PSVR processes or drivers
-            psvr_running = self._is_process_running("psvr") or self._is_process_running("psvr_driver")
-            
+            psvr_running = self._is_process_running("psvr") or self._is_process_running(
+                "psvr_driver"
+            )
+
             if psvr_running:
                 psvr_info = VRPlatformInfo(
                     platform=VRPlatform.PLAYSTATION_VR,
@@ -369,15 +423,13 @@ class VRPlatformDetector:
                     sdk_version=None,
                     supported_games=[],
                     capabilities={"6dof_tracking", "3d_audio"},
-                    additional_info={
-                        "note": "Third-party PC support detected"
-                    }
+                    additional_info={"note": "Third-party PC support detected"},
                 )
                 self._detected_platforms.append(psvr_info)
-                
+
         except Exception as e:
             print(f"PlayStation VR detection failed: {e}")
-    
+
     def _detect_vrchat(self) -> None:
         """Detect VRChat installation."""
         try:
@@ -387,18 +439,22 @@ class VRPlatformDetector:
                 [
                     r"C:\Program Files\VRChat",
                     r"C:\Program Files (x86)\VRChat",
-                    os.path.expanduser("~/Applications/VRChat.app") if self._system == "darwin" else "",
+                    (
+                        os.path.expanduser("~/Applications/VRChat.app")
+                        if self._system == "darwin"
+                        else ""
+                    ),
                 ],
                 VRPlatform.VRCHAT,
-                {"social_vr", "user_generated_content", "avatars", "worlds"}
+                {"social_vr", "user_generated_content", "avatars", "worlds"},
             )
-            
+
             if vrchat_info:
                 self._detected_platforms.append(vrchat_info)
-                
+
         except Exception as e:
             print(f"VRChat detection failed: {e}")
-    
+
     def _detect_rec_room(self) -> None:
         """Detect Rec Room installation."""
         try:
@@ -410,22 +466,24 @@ class VRPlatformDetector:
                     r"C:\Program Files (x86)\Rec Room",
                 ],
                 VRPlatform.REC_ROOM,
-                {"social_vr", "games", "cross_platform"}
+                {"social_vr", "games", "cross_platform"},
             )
-            
+
             if rec_room_info:
                 self._detected_platforms.append(rec_room_info)
-                
+
         except Exception as e:
             print(f"Rec Room detection failed: {e}")
-    
+
     def _detect_horizon_worlds(self) -> None:
         """Detect Horizon Worlds (Meta)."""
         try:
             # Horizon Worlds is primarily Quest-native,
             # but might be accessible through Oculus PC app
-            
-            if any(p.platform == VRPlatform.OCULUS_PC for p in self._detected_platforms):
+
+            if any(
+                p.platform == VRPlatform.OCULUS_PC for p in self._detected_platforms
+            ):
                 horizon_info = VRPlatformInfo(
                     platform=VRPlatform.HORIZON_WORLDS,
                     name="Horizon Worlds",
@@ -439,14 +497,14 @@ class VRPlatformDetector:
                     capabilities={"social_vr", "world_building", "meta_ecosystem"},
                     additional_info={
                         "access_method": "Meta Quest platform",
-                        "note": "Primarily Quest-native with potential PC access"
-                    }
+                        "note": "Primarily Quest-native with potential PC access",
+                    },
                 )
                 self._detected_platforms.append(horizon_info)
-                
+
         except Exception as e:
             print(f"Horizon Worlds detection failed: {e}")
-    
+
     def _detect_viveport(self) -> None:
         """Detect Viveport installation."""
         try:
@@ -455,7 +513,7 @@ class VRPlatformDetector:
                 r"C:\Program Files (x86)\VIVE\Viveport",
                 r"C:\Viveport",
             ]
-            
+
             for viveport_path in viveport_paths:
                 if os.path.exists(viveport_path):
                     viveport_info = VRPlatformInfo(
@@ -469,41 +527,44 @@ class VRPlatformDetector:
                         sdk_version=None,
                         supported_games=self._scan_viveport_games(viveport_path),
                         capabilities={"vive_ecosystem", "subscription_service"},
-                        additional_info={"viveport_path": viveport_path}
+                        additional_info={"viveport_path": viveport_path},
                     )
                     self._detected_platforms.append(viveport_info)
                     break
-                    
+
         except Exception as e:
             print(f"Viveport detection failed: {e}")
-    
+
     def _detect_windows_mr(self) -> None:
         """Detect Windows Mixed Reality."""
         try:
             if self._system != "windows":
                 return
-            
+
             # Check for Windows MR portal
             wmr_running = self._is_process_running("mixedrealityportal")
-            
+
             # Check registry for WMR installation (multiple possible locations)
             wmr_installed = False
             if winreg:
                 wmr_registry_paths = [
                     r"SOFTWARE\Microsoft\Windows\CurrentVersion\Holographic",
-                    r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Holographic",
+                    (
+                        r"SOFTWARE\WOW6432Node\Microsoft\Windows"
+                        r"\CurrentVersion\Holographic"
+                    ),
                     r"SOFTWARE\Microsoft\MixedReality",
-                    r"SOFTWARE\Microsoft\Windows Mixed Reality"
+                    r"SOFTWARE\Microsoft\Windows Mixed Reality",
                 ]
-                
+
                 for reg_path in wmr_registry_paths:
                     try:
-                        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, reg_path) as key:
+                        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, reg_path):
                             wmr_installed = True
                             break
                     except (WindowsError, FileNotFoundError, OSError):
                         continue
-            
+
             if wmr_installed or wmr_running:
                 wmr_info = VRPlatformInfo(
                     platform=VRPlatform.WINDOWS_MR,
@@ -515,14 +576,18 @@ class VRPlatformDetector:
                     api_available=wmr_installed,
                     sdk_version=None,
                     supported_games=["Mixed Reality Portal", "Cliff House"],
-                    capabilities={"inside_out_tracking", "motion_controllers", "holographic"},
-                    additional_info={"integrated_with_windows": True}
+                    capabilities={
+                        "inside_out_tracking",
+                        "motion_controllers",
+                        "holographic",
+                    },
+                    additional_info={"integrated_with_windows": True},
                 )
                 self._detected_platforms.append(wmr_info)
-                
+
         except Exception as e:
             print(f"Windows MR detection failed: {e}")
-    
+
     def _detect_varjo(self) -> None:
         """Detect Varjo software."""
         try:
@@ -530,7 +595,7 @@ class VRPlatformDetector:
                 r"C:\Program Files\Varjo",
                 r"C:\Program Files (x86)\Varjo",
             ]
-            
+
             for varjo_path in varjo_paths:
                 if os.path.exists(varjo_path):
                     varjo_info = VRPlatformInfo(
@@ -543,15 +608,19 @@ class VRPlatformDetector:
                         api_available=True,
                         sdk_version=None,
                         supported_games=[],
-                        capabilities={"high_resolution", "enterprise_vr", "mixed_reality"},
-                        additional_info={"varjo_path": varjo_path}
+                        capabilities={
+                            "high_resolution",
+                            "enterprise_vr",
+                            "mixed_reality",
+                        },
+                        additional_info={"varjo_path": varjo_path},
                     )
                     self._detected_platforms.append(varjo_info)
                     break
-                    
+
         except Exception as e:
             print(f"Varjo detection failed: {e}")
-    
+
     def _detect_pico_connect(self) -> None:
         """Detect Pico Connect software."""
         try:
@@ -560,7 +629,7 @@ class VRPlatformDetector:
                 r"C:\Program Files (x86)\Pico Interactive",
                 r"C:\Program Files\PicoConnect",
             ]
-            
+
             for pico_path in pico_paths:
                 if os.path.exists(pico_path):
                     pico_info = VRPlatformInfo(
@@ -574,33 +643,38 @@ class VRPlatformDetector:
                         sdk_version=None,
                         supported_games=[],
                         capabilities={"pico_ecosystem", "wireless_streaming"},
-                        additional_info={"pico_path": pico_path}
+                        additional_info={"pico_path": pico_path},
                     )
                     self._detected_platforms.append(pico_info)
                     break
-                    
+
         except Exception as e:
             print(f"Pico Connect detection failed: {e}")
-    
-    def _detect_application(self, app_name: str, process_names: List[str], 
-                          install_paths: List[str], platform: VRPlatform, 
-                          capabilities: Set[str]) -> Optional[VRPlatformInfo]:
+
+    def _detect_application(
+        self,
+        app_name: str,
+        process_names: List[str],
+        install_paths: List[str],
+        platform: VRPlatform,
+        capabilities: Set[str],
+    ) -> Optional[VRPlatformInfo]:
         """Generic application detection helper."""
         is_running = any(self._is_process_running(proc) for proc in process_names)
         install_path = None
-        
+
         for path in install_paths:
             if path and os.path.exists(path):
                 install_path = path
                 break
-        
+
         # Also check Steam for the application
         steam_installed = False
         if not install_path:
             # This would require Steam API integration or registry checking
             # For now, just check if it's running
             steam_installed = is_running
-        
+
         if install_path or is_running or steam_installed:
             return VRPlatformInfo(
                 platform=platform,
@@ -615,23 +689,46 @@ class VRPlatformDetector:
                 capabilities=capabilities,
                 additional_info={
                     "steam_available": steam_installed,
-                    "standalone_install": install_path is not None
-                }
+                    "standalone_install": install_path is not None,
+                },
             )
-        
+
         return None
-    
+
     def _is_process_running(self, process_name: str) -> bool:
         """Check if a process is currently running."""
         try:
             if self._system == "windows":
                 # Try multiple Windows process detection methods
                 methods = [
-                    (["tasklist", "/FI", f"IMAGENAME eq {process_name}*"], lambda out: process_name.lower() in out.lower()),
-                    (["wmic", "process", "where", f"name='{process_name}*'", "get", "name"], lambda out: process_name.lower() in out.lower()),
-                    (["powershell", "-Command", f"Get-Process -Name {process_name.replace('.exe', '')} -ErrorAction SilentlyContinue"], lambda out: len(out.strip()) > 0)
+                    (
+                        ["tasklist", "/FI", f"IMAGENAME eq {process_name}*"],
+                        lambda out: process_name.lower() in out.lower(),
+                    ),
+                    (
+                        [
+                            "wmic",
+                            "process",
+                            "where",
+                            f"name='{process_name}*'",
+                            "get",
+                            "name",
+                        ],
+                        lambda out: process_name.lower() in out.lower(),
+                    ),
+                    (
+                        [
+                            "powershell",
+                            "-Command",
+                            (
+                                f"Get-Process -Name {process_name.replace('.exe', '')} "
+                                "-ErrorAction SilentlyContinue"
+                            ),
+                        ],
+                        lambda out: len(out.strip()) > 0,
+                    ),
                 ]
-                
+
                 for cmd, check_func in methods:
                     try:
                         result = subprocess.run(
@@ -639,7 +736,11 @@ class VRPlatformDetector:
                             capture_output=True,
                             text=True,
                             timeout=10,
-                            creationflags=subprocess.CREATE_NO_WINDOW if self._system == "windows" else 0
+                            creationflags=(
+                                subprocess.CREATE_NO_WINDOW
+                                if self._system == "windows"
+                                else 0
+                            ),
                         )
                         if result.returncode == 0 and check_func(result.stdout):
                             return True
@@ -650,16 +751,13 @@ class VRPlatformDetector:
                 methods = [
                     ["pgrep", "-f", process_name],
                     ["pidof", process_name],
-                    ["ps", "aux"]  # Fallback: search in full process list
+                    ["ps", "aux"],  # Fallback: search in full process list
                 ]
-                
+
                 for i, cmd in enumerate(methods):
                     try:
                         result = subprocess.run(
-                            cmd,
-                            capture_output=True,
-                            text=True,
-                            timeout=10
+                            cmd, capture_output=True, text=True, timeout=10
                         )
                         if i < 2:  # pgrep, pidof
                             return result.returncode == 0
@@ -670,7 +768,7 @@ class VRPlatformDetector:
         except Exception:
             pass
         return False
-    
+
     def _get_steam_version(self, steam_path: str) -> Optional[str]:
         """Get Steam version."""
         try:
@@ -681,16 +779,23 @@ class VRPlatformDetector:
         except Exception:
             pass
         return None
-    
+
     def _get_steamvr_sdk_version(self, steamvr_path: str) -> Optional[str]:
         """Get SteamVR SDK version."""
         try:
             # Check for version info in SteamVR directory
             version_files = [
-                os.path.join(steamvr_path, "drivers", "lighthouse", "bin", "win64", "driver_lighthouse.dll"),
-                os.path.join(steamvr_path, "bin", "win64", "vrclient_x64.dll")
+                os.path.join(
+                    steamvr_path,
+                    "drivers",
+                    "lighthouse",
+                    "bin",
+                    "win64",
+                    "driver_lighthouse.dll",
+                ),
+                os.path.join(steamvr_path, "bin", "win64", "vrclient_x64.dll"),
             ]
-            
+
             for version_file in version_files:
                 if os.path.exists(version_file):
                     # This would require proper version extraction from DLL
@@ -699,12 +804,14 @@ class VRPlatformDetector:
         except Exception:
             pass
         return None
-    
+
     def _get_oculus_version(self, oculus_path: str) -> Optional[str]:
         """Get Oculus software version."""
         try:
             # Check for version in Oculus directory
-            manifest_file = os.path.join(oculus_path, "CoreData", "Manifests", "oculus-client.json")
+            manifest_file = os.path.join(
+                oculus_path, "CoreData", "Manifests", "oculus-client.json"
+            )
             if os.path.exists(manifest_file):
                 with open(manifest_file, "r") as f:
                     manifest = json.load(f)
@@ -712,7 +819,7 @@ class VRPlatformDetector:
         except Exception:
             pass
         return None
-    
+
     def _get_oculus_sdk_version(self, oculus_path: str) -> Optional[str]:
         """Get Oculus SDK version."""
         try:
@@ -722,7 +829,7 @@ class VRPlatformDetector:
         except Exception:
             pass
         return None
-    
+
     def _scan_oculus_games(self, oculus_path: str) -> List[str]:
         """Scan for Oculus games."""
         games = []
@@ -735,7 +842,7 @@ class VRPlatformDetector:
         except Exception:
             pass
         return games
-    
+
     def _scan_viveport_games(self, viveport_path: str) -> List[str]:
         """Scan for Viveport games."""
         games = []
@@ -749,7 +856,7 @@ class VRPlatformDetector:
         except Exception:
             pass
         return games
-    
+
     def _get_viveport_version(self, viveport_path: str) -> Optional[str]:
         """Get Viveport version."""
         try:
@@ -761,7 +868,7 @@ class VRPlatformDetector:
         except Exception:
             pass
         return None
-    
+
     def _get_varjo_version(self, varjo_path: str) -> Optional[str]:
         """Get Varjo software version."""
         try:
@@ -773,14 +880,14 @@ class VRPlatformDetector:
         except Exception:
             pass
         return None
-    
+
     def _get_windows_version(self) -> str:
         """Get Windows version."""
         try:
             return platform.platform()
         except Exception:
             return "Unknown"
-    
+
     def _compile_platform_results(self) -> Dict[str, Any]:
         """Compile platform detection results."""
         result = {
@@ -791,7 +898,7 @@ class VRPlatformDetector:
             "total_games": 0,
             "capabilities_summary": set(),
         }
-        
+
         for platform_info in self._detected_platforms:
             platform_data = {
                 "platform": platform_info.platform.value,
@@ -805,37 +912,41 @@ class VRPlatformDetector:
                 "supported_games": platform_info.supported_games,
                 "game_count": len(platform_info.supported_games),
                 "capabilities": list(platform_info.capabilities),
-                "additional_info": platform_info.additional_info
+                "additional_info": platform_info.additional_info,
             }
-            
+
             result["platforms"].append(platform_data)
-            
+
             if platform_info.is_running:
                 result["running_platforms"].append(platform_info.platform.value)
-            
+
             if platform_info.api_available:
                 result["available_apis"].append(platform_info.platform.value)
-            
+
             result["total_games"] += len(platform_info.supported_games)
             result["capabilities_summary"].update(platform_info.capabilities)
-        
+
         # Convert set to list for JSON serialization
         result["capabilities_summary"] = list(result["capabilities_summary"])
-        
+
         return result
-    
+
     def get_detected_platforms(self) -> List[VRPlatformInfo]:
         """Get list of detected VR platforms."""
         return self._detected_platforms.copy()
-    
+
     def is_platform_available(self, platform: VRPlatform) -> bool:
         """Check if a specific platform is available."""
-        return any(p.platform == platform and p.is_installed for p in self._detected_platforms)
-    
+        return any(
+            p.platform == platform and p.is_installed for p in self._detected_platforms
+        )
+
     def is_platform_running(self, platform: VRPlatform) -> bool:
         """Check if a specific platform is currently running."""
-        return any(p.platform == platform and p.is_running for p in self._detected_platforms)
-    
+        return any(
+            p.platform == platform and p.is_running for p in self._detected_platforms
+        )
+
     def get_platform_info(self, platform: VRPlatform) -> Optional[VRPlatformInfo]:
         """Get information about a specific platform."""
         for p in self._detected_platforms:
@@ -846,22 +957,21 @@ class VRPlatformDetector:
 
 class PlatformDetector(VRPlatformDetector):
     """Alias for VRPlatformDetector to match main application expectations."""
-    
+
     def __init__(self):
         super().__init__()
         self._previous_platforms = None
-    
+
     def has_platforms_changed(self) -> bool:
         """Check if platform configuration has changed since last detection."""
         current_platforms = [
-            (p.platform, p.is_installed, p.is_running) 
-            for p in self._detected_platforms
+            (p.platform, p.is_installed, p.is_running) for p in self._detected_platforms
         ]
-        
+
         if self._previous_platforms is None:
             self._previous_platforms = current_platforms
             return True
-        
+
         changed = self._previous_platforms != current_platforms
         self._previous_platforms = current_platforms
         return changed

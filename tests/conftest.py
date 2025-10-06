@@ -2,8 +2,9 @@
 
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock, Mock
+
 import pytest
-from unittest.mock import Mock, MagicMock
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -21,6 +22,7 @@ def mock_qt_app(monkeypatch):
 def config_manager():
     """Provide a clean ConfigManager instance for testing."""
     from src.utils.config import ConfigManager
+
     config = ConfigManager()
     yield config
     # Cleanup: reset to defaults after test
@@ -31,6 +33,7 @@ def config_manager():
 def language_detector():
     """Provide a LanguageDetector instance for testing."""
     from src.localization.detector import LanguageDetector
+
     return LanguageDetector()
 
 
@@ -38,13 +41,14 @@ def language_detector():
 def theme_manager():
     """Provide a ThemeManager instance for testing."""
     from src.ui.themes import ThemeManager
+
     return ThemeManager()
 
 
 @pytest.fixture
 def mock_vr_device():
     """Provide a mock VR device for testing."""
-    from src.detection.hardware import VRDevice, VRHeadsetType, VRCapabilities
+    from src.detection.hardware import VRCapabilities, VRDevice, VRHeadsetType
 
     return VRDevice(
         device_type=VRHeadsetType.META_QUEST_2,
@@ -58,6 +62,6 @@ def mock_vr_device():
             has_6dof=True,
             has_hand_tracking=True,
             has_passthrough=True,
-            max_refresh_rate=120
-        )
+            max_refresh_rate=120,
+        ),
     )

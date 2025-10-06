@@ -1,7 +1,8 @@
 """Integration tests for the main application."""
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 
 
 @pytest.mark.integration
@@ -15,9 +16,9 @@ def test_app_initialization_flow(monkeypatch):
 
     app = HelyxiumApp()
     assert app is not None
-    assert hasattr(app, 'config_manager')
-    assert hasattr(app, 'language_detector')
-    assert hasattr(app, 'hardware_detector')
+    assert hasattr(app, "config_manager")
+    assert hasattr(app, "language_detector")
+    assert hasattr(app, "hardware_detector")
 
 
 @pytest.mark.integration
@@ -32,8 +33,8 @@ def test_detection_pipeline(monkeypatch):
     hw_result = hw_detector.detect_vr_hardware()
     platform_result = platform_detector.detect_vr_platforms()
 
-    assert 'devices_detected' in hw_result
-    assert 'platforms_detected' in platform_result
+    assert "devices_detected" in hw_result
+    assert "platforms_detected" in platform_result
 
 
 @pytest.mark.integration
