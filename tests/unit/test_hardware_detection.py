@@ -1,12 +1,13 @@
 """Tests for VR hardware detection."""
 
 import pytest
+
 from src.detection.hardware import (
     HardwareDetector,
+    VRCapabilities,
+    VRDevice,
     VRHardwareDetector,
     VRHeadsetType,
-    VRDevice,
-    VRCapabilities
 )
 
 
@@ -14,7 +15,7 @@ def test_hardware_detector_initialization():
     """Test HardwareDetector initializes correctly."""
     detector = HardwareDetector()
     assert detector is not None
-    assert hasattr(detector, 'detect_vr_hardware')
+    assert hasattr(detector, "detect_vr_hardware")
 
 
 def test_vr_hardware_detector_initialization():
@@ -29,10 +30,10 @@ def test_detect_vr_hardware_returns_dict():
     result = detector.detect_vr_hardware()
 
     assert isinstance(result, dict)
-    assert 'devices_detected' in result
-    assert 'supported_features' in result
-    assert isinstance(result['devices_detected'], int)
-    assert isinstance(result['supported_features'], list)
+    assert "devices_detected" in result
+    assert "supported_features" in result
+    assert isinstance(result["devices_detected"], int)
+    assert isinstance(result["supported_features"], list)
 
 
 def test_vr_device_creation(mock_vr_device):
@@ -60,5 +61,5 @@ def test_hardware_change_detection():
     assert detector.has_hardware_changed() is True
 
     # If no hardware changes, should return False
-    if detector.detect_vr_hardware()['devices_detected'] == 0:
+    if detector.detect_vr_hardware()["devices_detected"] == 0:
         assert detector.has_hardware_changed() is False

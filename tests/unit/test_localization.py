@@ -1,6 +1,7 @@
 """Tests for localization system."""
 
 import pytest
+
 from src.localization.detector import LanguageDetector
 from src.localization.manager import LocalizationManager
 
@@ -19,11 +20,11 @@ def test_detect_system_language(language_detector):
 
 def test_is_cjk_language(language_detector):
     """Test CJK language detection."""
-    assert language_detector.is_cjk_language('zh') is True
-    assert language_detector.is_cjk_language('ja') is True
-    assert language_detector.is_cjk_language('ko') is True
-    assert language_detector.is_cjk_language('en') is False
-    assert language_detector.is_cjk_language('es') is False
+    assert language_detector.is_cjk_language("zh") is True
+    assert language_detector.is_cjk_language("ja") is True
+    assert language_detector.is_cjk_language("ko") is True
+    assert language_detector.is_cjk_language("en") is False
+    assert language_detector.is_cjk_language("es") is False
 
 
 def test_localization_manager_initialization():
@@ -38,7 +39,7 @@ def test_get_available_languages():
     languages = loc_manager.get_available_languages()
     assert isinstance(languages, dict)
     assert len(languages) > 0
-    assert 'en' in languages
+    assert "en" in languages
 
 
 def test_current_language():
