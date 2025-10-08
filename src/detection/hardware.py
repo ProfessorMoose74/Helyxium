@@ -12,12 +12,15 @@ Detects all connected VR hardware including:
 Returns capabilities matrix for each device.
 """
 
+import logging
 import platform
 import re
-import subprocess
+import subprocess  # nosec B404 - subprocess is required for hardware detection with safe, hardcoded commands
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
+
+logger = logging.getLogger(__name__)
 
 try:
     import openvr
@@ -335,8 +338,8 @@ class VRHardwareDetector:
         finally:
             try:
                 openvr.shutdown()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Failed to shutdown OpenVR: {e}")
 
     def _detect_via_usb(self) -> None:
         """Detect VR devices via USB enumeration."""
@@ -366,8 +369,8 @@ class VRHardwareDetector:
                         serial = None
                         try:
                             serial = usb.util.get_string(device, device.iSerialNumber)
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            logger.debug(f"Failed to get serial number for USB device: {e}")
                     except Exception:
                         manufacturer = "Unknown"
                         product = device_type.value.replace("_", " ").title()
@@ -418,7 +421,7 @@ class VRHardwareDetector:
                 "Get-PnpDevice | Where-Object {$_.FriendlyName -like "
                 "'*Mixed Reality*' -or $_.FriendlyName -like '*HoloLens*'}"
             )
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603, B607 - Safe hardcoded command for device detection
                 ["powershell", "-Command", wmr_query],
                 capture_output=True,
                 text=True,
@@ -453,7 +456,7 @@ class VRHardwareDetector:
         """Detect VR devices on macOS."""
         try:
             # Check for Apple Vision Pro
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603, B607 - Safe hardcoded command for USB device detection
                 ["system_profiler", "SPUSBDataType"],
                 capture_output=True,
                 text=True,
@@ -489,7 +492,7 @@ class VRHardwareDetector:
         """Detect VR devices on Linux."""
         try:
             # Check lsusb output
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603, B607 - Safe hardcoded command for USB device listing
                 ["lsusb"], capture_output=True, text=True, timeout=10
             )
 
@@ -531,14 +534,14 @@ class VRHardwareDetector:
         try:
             # Check for running VR software processes
             if platform.system().lower() == "windows":
-                result = subprocess.run(
+                result = subprocess.run(  # nosec B603, B607 - Safe hardcoded command for process listing
                     ["tasklist", "/FO", "CSV"],
                     capture_output=True,
                     text=True,
                     timeout=10,
                 )
             else:
-                result = subprocess.run(
+                result = subprocess.run(  # nosec B603, B607 - Safe hardcoded command for process listing
                     ["ps", "aux"], capture_output=True, text=True, timeout=10
                 )
 
