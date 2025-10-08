@@ -25,10 +25,10 @@ from ..utils.logging import SecurityLogger, get_logger
 class AuthenticationMethod(Enum):
     """Available authentication methods."""
 
-    PASSWORD = "password"
+    PASSWORD = "password"  # nosec B105 - This is an enum value, not a hardcoded password
     BIOMETRIC_FINGERPRINT = "biometric_fingerprint"
     BIOMETRIC_FACE = "biometric_face"
-    HARDWARE_TOKEN = "hardware_token"
+    HARDWARE_TOKEN = "hardware_token"  # nosec B105 - This is an enum value, not a hardcoded token
     SMS_CODE = "sms_code"
     EMAIL_CODE = "email_code"
     TOTP = "totp"

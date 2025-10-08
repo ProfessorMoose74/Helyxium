@@ -10,12 +10,15 @@ Detects installed VR software and available APIs:
 """
 
 import json
+import logging
 import os
 import platform
-import subprocess
+import subprocess  # nosec B404 - subprocess is required for platform detection with safe, hardcoded commands
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
+
+logger = logging.getLogger(__name__)
 
 try:
     import winreg
@@ -277,8 +280,8 @@ class VRPlatformDetector:
                         if pattern.lower() in item.lower():
                             vr_games.append(item)
                             break
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to scan Steam VR games from {steamapps_path}: {e}")
 
         return vr_games
 
@@ -731,7 +734,7 @@ class VRPlatformDetector:
 
                 for cmd, check_func in methods:
                     try:
-                        result = subprocess.run(
+                        result = subprocess.run(  # nosec B603 - Safe hardcoded commands for process detection
                             cmd,
                             capture_output=True,
                             text=True,
@@ -756,7 +759,7 @@ class VRPlatformDetector:
 
                 for i, cmd in enumerate(methods):
                     try:
-                        result = subprocess.run(
+                        result = subprocess.run(  # nosec B603, B607 - Safe hardcoded commands for process detection
                             cmd, capture_output=True, text=True, timeout=10
                         )
                         if i < 2:  # pgrep, pidof
@@ -765,8 +768,8 @@ class VRPlatformDetector:
                             return process_name.lower() in result.stdout.lower()
                     except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
                         continue
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to check if process '{process_name}' is running: {e}")
         return False
 
     def _get_steam_version(self, steam_path: str) -> Optional[str]:
@@ -776,8 +779,8 @@ class VRPlatformDetector:
             if os.path.exists(version_file):
                 with open(version_file, "r") as f:
                     return f.read().strip()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to get Steam version from {steam_path}: {e}")
         return None
 
     def _get_steamvr_sdk_version(self, steamvr_path: str) -> Optional[str]:
@@ -801,8 +804,8 @@ class VRPlatformDetector:
                     # This would require proper version extraction from DLL
                     # For now, return a placeholder
                     return "Latest"
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to get SteamVR SDK version from {steamvr_path}: {e}")
         return None
 
     def _get_oculus_version(self, oculus_path: str) -> Optional[str]:
@@ -816,8 +819,8 @@ class VRPlatformDetector:
                 with open(manifest_file, "r") as f:
                     manifest = json.load(f)
                     return manifest.get("version")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to get Oculus version from {oculus_path}: {e}")
         return None
 
     def _get_oculus_sdk_version(self, oculus_path: str) -> Optional[str]:
@@ -826,8 +829,8 @@ class VRPlatformDetector:
             sdk_path = os.path.join(oculus_path, "Support", "oculus-runtime")
             if os.path.exists(sdk_path):
                 return "Latest"
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to get Oculus SDK version from {oculus_path}: {e}")
         return None
 
     def _scan_oculus_games(self, oculus_path: str) -> List[str]:
@@ -839,8 +842,8 @@ class VRPlatformDetector:
                 for item in os.listdir(software_path):
                     if os.path.isdir(os.path.join(software_path, item)):
                         games.append(item)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to scan Oculus games from {oculus_path}: {e}")
         return games
 
     def _scan_viveport_games(self, viveport_path: str) -> List[str]:
@@ -853,8 +856,8 @@ class VRPlatformDetector:
                 for item in os.listdir(games_path):
                     if os.path.isdir(os.path.join(games_path, item)):
                         games.append(item)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to scan Viveport games from {viveport_path}: {e}")
         return games
 
     def _get_viveport_version(self, viveport_path: str) -> Optional[str]:
@@ -865,8 +868,8 @@ class VRPlatformDetector:
             if os.path.exists(version_file):
                 with open(version_file, "r") as f:
                     return f.read().strip()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to get Viveport version from {viveport_path}: {e}")
         return None
 
     def _get_varjo_version(self, varjo_path: str) -> Optional[str]:
@@ -877,8 +880,8 @@ class VRPlatformDetector:
             if os.path.exists(version_file):
                 with open(version_file, "r") as f:
                     return f.read().strip()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to get Varjo version from {varjo_path}: {e}")
         return None
 
     def _get_windows_version(self) -> str:

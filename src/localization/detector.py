@@ -10,9 +10,12 @@ Implements automatic detection of system language with priority for:
 """
 
 import locale
+import logging
 import os
 import platform
 from typing import Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 try:
     import winreg
@@ -76,7 +79,8 @@ class LanguageDetector:
                     self._detected_language = lang_code
                     self._detection_method = method.__name__
                     return lang_code
-            except Exception:
+            except Exception as e:
+                logger.debug(f"Language detection method {method.__name__} failed: {e}")
                 continue
 
         # Fallback to English
@@ -97,8 +101,8 @@ class LanguageDetector:
             if current_locale:
                 return self._normalize_language_code(current_locale)
 
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to detect language from locale: {e}")
 
         return None
 
@@ -163,10 +167,10 @@ class LanguageDetector:
     def _detect_macos_language(self) -> Optional[str]:
         """Detect language on macOS using system preferences."""
         try:
-            import subprocess
+            import subprocess  # nosec B404 - subprocess is required for macOS language detection with safe commands
 
             # Get preferred languages from system preferences
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603, B607 - Safe hardcoded command for reading system preferences
                 ["defaults", "read", "-g", "AppleLanguages"],
                 capture_output=True,
                 text=True,
@@ -182,8 +186,8 @@ class LanguageDetector:
                         first_lang = languages[0].strip().strip('"')
                         return self._normalize_language_code(first_lang)
 
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to detect macOS language: {e}")
 
         return None
 
