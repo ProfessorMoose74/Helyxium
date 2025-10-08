@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def sanitize_auth_result(result):
     """
     Sanitize authentication result for safe logging.
@@ -44,6 +45,8 @@ def sanitize_auth_result(result):
         return "AUTHENTICATION_COMPLETED" if result else "AUTHENTICATION_FAILED"
 =======
 >>>>>>> 2a7a1ac (Fix linting issues detected by GitHub)
+=======
+>>>>>>> origin/main
 
 def test_language_detection():
     """Test language detection system."""
@@ -127,6 +130,7 @@ def test_authentication():
 
     result, session_id = auth_manager.authenticate("testuser", "TestPassword123!")
 <<<<<<< HEAD
+<<<<<<< HEAD
     
     # Safely log authentication result without exposing sensitive data
     auth_status = sanitize_auth_result(result)
@@ -145,6 +149,10 @@ def test_authentication():
     print(f"[OK] Authentication: {result}")
 
 >>>>>>> 2a7a1ac (Fix linting issues detected by GitHub)
+=======
+    print(f"[OK] Authentication: {result}")
+
+>>>>>>> origin/main
     return True
 
 
@@ -163,15 +171,21 @@ def test_localization():
     print(f"[OK] Tagline: {tagline}")
     print(f"[OK] Current language: {loc_manager.get_current_language()}")
 <<<<<<< HEAD
+<<<<<<< HEAD
     print(f"[OK] Available languages: {list(loc_manager.get_available_languages().keys())}")
     
     logger.info(f"Localization test completed for language: {loc_manager.get_current_language()}")
 =======
+=======
+>>>>>>> origin/main
     print(
         f"[OK] Available languages: {list(loc_manager.get_available_languages().keys())}"
     )
 
+<<<<<<< HEAD
 >>>>>>> 2a7a1ac (Fix linting issues detected by GitHub)
+=======
+>>>>>>> origin/main
     return True
 
 
@@ -190,6 +204,7 @@ def test_configuration():
     config.set("test_setting", "test_value")
     retrieved_value = config.get("test_setting")
 <<<<<<< HEAD
+<<<<<<< HEAD
     test_passed = retrieved_value == 'test_value'
     print(f"[OK] Set/Get test: {test_passed}")
     
@@ -198,6 +213,10 @@ def test_configuration():
     print(f"[OK] Set/Get test: {retrieved_value == 'test_value'}")
 
 >>>>>>> 2a7a1ac (Fix linting issues detected by GitHub)
+=======
+    print(f"[OK] Set/Get test: {retrieved_value == 'test_value'}")
+
+>>>>>>> origin/main
     return True
 
 
@@ -206,12 +225,16 @@ def main():
     print("Starting Helyxium Core Component Tests")
     print("=" * 50)
 <<<<<<< HEAD
+<<<<<<< HEAD
     
     logger.info("Starting Helyxium core component tests")
     
 =======
 
 >>>>>>> 2a7a1ac (Fix linting issues detected by GitHub)
+=======
+
+>>>>>>> origin/main
     tests = [
         test_language_detection,
         test_theme_detection,
@@ -248,11 +271,15 @@ def main():
     else:
         print("Some components need attention.")
 <<<<<<< HEAD
+<<<<<<< HEAD
         logger.warning(f"Core component tests completed with {failed} failures")
     
 =======
 
 >>>>>>> 2a7a1ac (Fix linting issues detected by GitHub)
+=======
+
+>>>>>>> origin/main
     return failed == 0
 
 
